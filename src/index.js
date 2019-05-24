@@ -4,8 +4,8 @@ import Form from "./formGenerationEngine";
 import "./styles.css";
 
 const schema = {
-  title: "A registration form",
-  description: "A simple form example.",
+  title: "",
+  description: "",
   type: "object",
   required: ["firstName", "lastName"],
   properties: {
@@ -35,6 +35,11 @@ const schema = {
       type: "string",
       title: "Telephone",
       minLength: 10
+    },
+    file: {
+      type: "string",
+      format: "data-url",
+      title: "Single file"
     }
   }
 };
@@ -46,12 +51,9 @@ const uiSchema = {
   },
   age: {
     "ui:widget": "updown",
-    "ui:title": "Age of person",
-    "ui:description": "(earthian year)"
+    "ui:title": "Age of person"
   },
-  bio: {
-    "ui:widget": "textarea"
-  },
+
   password: {
     "ui:widget": "password",
     "ui:help": "Hint: Make it strong!"
@@ -86,7 +88,11 @@ const onSubmit = ({ formData }) => {
 };
 
 function App() {
-  return <Form schema={schema} onSubmit={onSubmit} uiSchema={uiSchema} />;
+  return (
+    <div className="app">
+      <Form schema={schema} onSubmit={onSubmit} uiSchema={uiSchema} />
+    </div>
+  );
 }
 
 const rootElement = document.getElementById("root");

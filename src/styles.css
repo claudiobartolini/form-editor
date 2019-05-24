@@ -1,6 +1,12 @@
-.App {
+/* @import "https://unpkg.com/box-react-ui@23.6.0/lib/styles/box-ui.theme.css"; */
+
+body {
   font-family: sans-serif;
-  text-align: center;
+  font-size: 12px;
+}
+
+.app {
+  max-width: 400px;
 }
 
 form fieldset {
