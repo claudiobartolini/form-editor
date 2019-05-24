@@ -3,35 +3,16 @@ import ReactDOM from "react-dom";
 import Form from "./formGenerationEngine";
 import "./styles.css";
 
-/*
 const uiSchema = {
-  firstName: {
-    "ui:autofocus": true,
-    "ui:emptyValue": ""
-  },
-  age: {
-    "ui:widget": "updown",
-    "ui:title": "Age of person"
-  },
-
-  password: {
-    "ui:widget": "password",
-    "ui:help": "Hint: Make it strong!"
-  },
-  date: {
-    "ui:widget": "alt-datetime"
-  },
-  telephone: {
-    "ui:options": {
-      inputType: "tel"
-    }
+  "ui:order": ["choose", "*", "file"],
+  choose: {
+    "ui:widget": "checkboxes"
   }
 };
 
-*/
-
 var schema = {};
-var uiSchema = {};
+var protoschema = {};
+var metaschema = {};
 
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
@@ -73,7 +54,27 @@ fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   })
   .then(myBody => {
     console.log(myBody);
-    schema = JSON.parse(myBody);
+    protoschema = JSON.parse(myBody);
+
+    // create the metaschema
+    metaschema.properties = {};
+    metaschema.properties.choose = {};
+    metaschema.properties.choose.type = "array";
+    metaschema.properties.choose.title =
+      "Select fields from the " + protoschema.title + " template";
+    metaschema.properties.choose.items = {};
+    metaschema.properties.choose.items.type = "string";
+    metaschema.properties.choose.items.enum = [];
+    for (var i in protoschema.properties) {
+      metaschema.properties.choose.items.enum.push(
+        protoschema.properties[i].title
+      );
+    }
+    metaschema.properties.choose.uniqueItems = true;
+    console.log(JSON.stringify(metaschema));
+
+    schema = protoschema;
+    schema.properties.choose = metaschema.properties.choose;
     schema.properties.file = {
       type: "string",
       format: "data-url",
