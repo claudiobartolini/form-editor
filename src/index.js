@@ -69,12 +69,13 @@ const uiSchema = {
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
   console.log(formData);
-  fetch({
-    url:
-      "https://fvtwd1iix2.execute-api.us-west-1.amazonaws.com/default/box-forms",
-    method: "POST",
-    body: JSON.stringify(formData)
-  })
+  fetch(
+    "https://fvtwd1iix2.execute-api.us-west-1.amazonaws.com/default/box-forms",
+    {
+      method: "POST",
+      body: JSON.stringify(formData)
+    }
+  )
     .then(res => {
       return res.text();
     })
