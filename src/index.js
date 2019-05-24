@@ -4,47 +4,6 @@ import Form from "./formGenerationEngine";
 import "./styles.css";
 
 /*
-const schema = {
-  title: "",
-  description: "",
-  type: "object",
-  required: ["firstName", "lastName"],
-  properties: {
-    firstName: {
-      type: "string",
-      title: "First name",
-      default: "Chuck"
-    },
-    lastName: {
-      type: "string",
-      title: "Last name"
-    },
-    age: {
-      type: "integer",
-      title: "Age"
-    },
-    bio: {
-      type: "string",
-      title: "Bio"
-    },
-    password: {
-      type: "string",
-      title: "Password",
-      minLength: 3
-    },
-    telephone: {
-      type: "string",
-      title: "Telephone",
-      minLength: 10
-    },
-    file: {
-      type: "string",
-      format: "data-url",
-      title: "Single file"
-    }
-  }
-};
-
 const uiSchema = {
   firstName: {
     "ui:autofocus": true,
@@ -115,7 +74,11 @@ fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   .then(myBody => {
     console.log(myBody);
     schema = JSON.parse(myBody);
-
+    schema.properties.file = {
+      type: "string",
+      format: "data-url",
+      title: "Please upload the request file"
+    };
     ReactDOM.render(<App />, rootElement);
   })
   .catch(console.error);
