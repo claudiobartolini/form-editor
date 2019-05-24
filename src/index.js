@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import Form from "./formGenerationEngine";
 import "./styles.css";
 
+/*
 const schema = {
   title: "",
   description: "",
@@ -66,6 +67,31 @@ const uiSchema = {
       inputType: "tel"
     }
   }
+};
+
+*/
+
+var schema = {};
+var uiSchema = {};
+window.onload = function() {
+  fetch(
+    "https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms",
+    {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json"
+      }
+    }
+  )
+    .then(res => {
+      return res.text();
+    })
+    .then(myBody => {
+      schema = JSON.parse(myBody);
+      console.log(myBody);
+    })
+    .catch(console.error);
 };
 
 const onSubmit = ({ formData }) => {
