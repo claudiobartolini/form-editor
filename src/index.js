@@ -114,7 +114,8 @@ fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   })
   .then(myBody => {
     console.log(myBody);
-    schema = myBody;
+    schema = JSON.parse(myBody);
+
+    ReactDOM.render(<App />, rootElement);
   })
   .catch(console.error);
-ReactDOM.render(<App />, rootElement);
