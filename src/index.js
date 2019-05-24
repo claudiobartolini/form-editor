@@ -4,7 +4,10 @@ import Form from "./formGenerationEngine";
 import "./styles.css";
 
 const uiSchema = {
-  "ui:order": ["choose", "*", "file"],
+  "ui:order": ["*", "file"]
+};
+
+const uiMetaschema = {
   choose: {
     "ui:widget": "checkboxes"
   }
@@ -13,6 +16,29 @@ const uiSchema = {
 var schema = {};
 var protoschema = {};
 var metaschema = {};
+
+const onMetaSubmit = ({ formData }) => {
+  console.log(formData);
+  schema.properties = {};
+  schema.title = protoschema.title;
+  schema.description = protoschema.description;
+  schema.type = "object";
+  Object.keys(protoschema.properties).forEach(function(key) {
+    if (
+      formData.choose.indexOf(protoschema.properties[key.toString()].title) > -1
+    ) {
+      schema.properties[key.toString()] =
+        protoschema.properties[key.toString()];
+    }
+  });
+  schema.properties.file = {
+    type: "string",
+    format: "data-url",
+    title: "Please upload the request file"
+  };
+  console.log(schema);
+  ReactDOM.render(<App2 />, rootElement);
+};
 
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
@@ -33,9 +59,21 @@ const onSubmit = ({ formData }) => {
     .catch(console.error);
 };
 
-function App() {
+function App1() {
   return (
-    <div className="app">
+    <div className="app" id="createSchema">
+      <Form
+        schema={metaschema}
+        onSubmit={onMetaSubmit}
+        uiSchema={uiMetaschema}
+      />
+    </div>
+  );
+}
+
+function App2() {
+  return (
+    <div className="app" id="fillForm">
       <Form schema={schema} onSubmit={onSubmit} uiSchema={uiSchema} />
     </div>
   );
@@ -57,11 +95,12 @@ fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
     protoschema = JSON.parse(myBody);
 
     // create the metaschema
+    metaschema.title = "Select fields from the template";
+    metaschema.description = "";
+    metaschema.type = "object";
     metaschema.properties = {};
     metaschema.properties.choose = {};
     metaschema.properties.choose.type = "array";
-    metaschema.properties.choose.title =
-      "Select fields from the " + protoschema.title + " template";
     metaschema.properties.choose.items = {};
     metaschema.properties.choose.items.type = "string";
     metaschema.properties.choose.items.enum = [];
@@ -73,13 +112,6 @@ fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
     metaschema.properties.choose.uniqueItems = true;
     console.log(JSON.stringify(metaschema));
 
-    schema = protoschema;
-    schema.properties.choose = metaschema.properties.choose;
-    schema.properties.file = {
-      type: "string",
-      format: "data-url",
-      title: "Please upload the request file"
-    };
-    ReactDOM.render(<App />, rootElement);
+    ReactDOM.render(<App1 />, rootElement);
   })
   .catch(console.error);
