@@ -1,7 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import Form from "./formGenerationEngine";
-import Box from "box-node-sdk";
 import "./styles.css";
 
 const schema = {
@@ -67,25 +66,22 @@ const uiSchema = {
   }
 };
 
-var sdk = new Box({
-  clientID: "f20ggsaremy1p6t6u5johupez4aj1usc",
-  clientSecret: "oprsKPGZq75Zz6DXGyh2vc2abdDZiYm8"
-});
-
-var client = sdk.getBasicClient("xfYaIdIEJ5qPt1dQphWjnHudpMb4Ok7u");
-
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
   console.log(formData);
-  var folderID = 0;
-  client.files
-    .uploadFile(folderID, "filledForm.json", formData)
-    .then(file => {
-      console.log("success");
+  fetch({
+    url:
+      "https://fvtwd1iix2.execute-api.us-west-1.amazonaws.com/default/box-forms",
+    method: "POST",
+    body: JSON.stringify(formData)
+  })
+    .then(res => {
+      return res.text();
     })
-    .catch(err => {
-      console.log("error" + err.message);
-    });
+    .then(myBody => {
+      console.log(myBody);
+    })
+    .catch(console.error);
 };
 
 function App() {
