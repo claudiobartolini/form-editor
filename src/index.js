@@ -73,26 +73,6 @@ const uiSchema = {
 
 var schema = {};
 var uiSchema = {};
-window.onload = function() {
-  fetch(
-    "https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms",
-    {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json"
-      }
-    }
-  )
-    .then(res => {
-      return res.text();
-    })
-    .then(myBody => {
-      schema = JSON.parse(myBody);
-      console.log(myBody);
-    })
-    .catch(console.error);
-};
 
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
@@ -122,4 +102,19 @@ function App() {
 }
 
 const rootElement = document.getElementById("root");
+fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
+  method: "POST",
+  body: JSON.stringify({}),
+  headers: {
+    "Content-Type": "application/json"
+  }
+})
+  .then(res => {
+    return res.text();
+  })
+  .then(myBody => {
+    console.log(myBody);
+    schema = myBody;
+  })
+  .catch(console.error);
 ReactDOM.render(<App />, rootElement);
