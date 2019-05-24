@@ -72,14 +72,14 @@ var sdk = new Box({
   clientSecret: "oprsKPGZq75Zz6DXGyh2vc2abdDZiYm8"
 });
 
-var client = sdk.getBasicClient("6LUynSjOaGkCAv0cUYM8ZUK2Y2byCI8e");
+var client = sdk.getBasicClient("xfYaIdIEJ5qPt1dQphWjnHudpMb4Ok7u");
 
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
   console.log(formData);
   var folderID = 0;
   client.files
-    .uploadFile(folderID, "filledForm.json", formData, options)
+    .uploadFile(folderID, "filledForm.json", formData)
     .then(file => {
       console.log("success");
     })
