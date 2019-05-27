@@ -43,6 +43,10 @@ const onMetaSubmit = ({ formData }) => {
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
   console.log(formData);
+  var payload = {
+    command: "form",
+    body: formData
+  };
   fetch(
     "https://fvtwd1iix2.execute-api.us-west-1.amazonaws.com/default/box-forms",
     {
