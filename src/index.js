@@ -36,17 +36,13 @@ const onMetaSubmit = ({ formData }) => {
     format: "data-url",
     title: "Please upload the request file"
   };
-  console.log(schema);
+  console.log(JSON.stringify(schema));
   ReactDOM.render(<App2 />, rootElement);
 };
 
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
   console.log(formData);
-  var payload = {
-    command: "form",
-    body: formData
-  };
   fetch(
     "https://fvtwd1iix2.execute-api.us-west-1.amazonaws.com/default/box-forms",
     {
