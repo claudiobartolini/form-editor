@@ -29,6 +29,7 @@ const onTemplateSubmit = ({ formData }) => {
   console.log(formData);
 
   templateKey = selectedEntry.templateKey;
+
   fetch(
     "https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms",
     {
@@ -126,12 +127,8 @@ const onSubmit = ({ formData }) => {
       body: JSON.stringify(formData)
     }
   )
-    .then(res => {
-      return res.text();
-    })
-    .then(myBody => {
-      console.log(myBody);
-    })
+    .then(res => res.text())
+    .then(responseBody => console.log(responseBody))
     .catch(console.error);
 };
 
@@ -168,6 +165,7 @@ function App2() {
 }
 
 const rootElement = document.getElementById("root");
+
 fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   method: "POST",
   body: JSON.stringify({ command: "templatesList" }),
