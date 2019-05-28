@@ -3,7 +3,9 @@ import ReactDOM from "react-dom";
 import Form from "./formGenerationEngine";
 import "./styles.css";
 
-const rootElement = document.getElementById("root");
+var uiSchema = {
+  "ui:order": ["*", "file"]
+};
 
 const uiSchemaMeta = {
   choose: {
@@ -15,59 +17,43 @@ let uiSchemaForm = {
   "ui:order": ["*", "file"]
 };
 
-let protoschema = {};
-let metaschema = {};
-let schema = {};
-
-const onSubmitMeta = ({ formData }) => {
-  // Generate schema from selected metadata
-  const selectedMetadata = Object.keys(protoschema.properties).reduce(
-    (props, key) => {
-      return formData.choose.includes(protoschema.properties[key].title)
-        ? {
-            ...props,
-            [key]: protoschema.properties[key]
-          }
-        : props;
-    },
-    {}
-  );
-
-  schema = {
-    description: protoschema.description,
-    properties: {
-      ...selectedMetadata,
-      file: {
-        type: "string",
-        format: "data-url",
-        title: "Please upload the request file"
-      }
-    },
-    title: protoschema.title,
-    type: "object"
+const onMetaSubmit = ({ formData }) => {
+  console.log(formData);
+  schema.properties = {};
+  schema.title = protoschema.title;
+  schema.description = protoschema.description;
+  schema.type = "object";
+  Object.keys(protoschema.properties).forEach(function(key) {
+    if (
+      formData.choose.indexOf(protoschema.properties[key.toString()].title) > -1
+    ) {
+      schema.properties[key.toString()] =
+        protoschema.properties[key.toString()];
+      if (schema.properties[key.toString()].type === "array")
+        uiSchema[key.toString()] = JSON.parse('{"ui:widget": "select"}');
+    }
+  });
+  schema.properties.file = {
+    type: "string",
+    format: "data-url",
+    title: "Please upload the request file"
   };
-
-  // Set "array" type options to display as checkboxes
-  const uiSchemaAdditions = Object.keys(selectedMetadata).reduce(
-    (props, key) => {
-      return selectedMetadata[key].type === "array"
-        ? {
-            ...props,
-            [key]: {
-              "ui:widget": "checkboxes"
-            }
-          }
-        : props;
-    },
-    {}
-  );
-
-  uiSchemaForm = {
-    ...uiSchemaForm,
-    ...uiSchemaAdditions
-  };
-
-  ReactDOM.render(<FormUploader />, rootElement);
+  console.log(JSON.stringify(schema));
+  ReactDOM.render(<App2 />, rootElement);
+  fetch(
+    "https://jmr2oacl0g.execute-api.us-west-1.amazonaws.com/default/forms-upload-schema",
+    {
+      method: "POST",
+      body: JSON.stringify(metaschema)
+    }
+  )
+    .then(res => {
+      return res.text();
+    })
+    .then(myBody => {
+      console.log(myBody);
+    })
+    .catch(console.error);
 };
 
 const FormBuilder = () => (
