@@ -5,14 +5,14 @@ import "./styles.css";
 
 const rootElement = document.getElementById("root");
 
-const uiSchemaForm = {
-  "ui:order": ["*", "file"]
-};
-
 const uiSchemaMeta = {
   choose: {
     "ui:widget": "checkboxes"
   }
+};
+
+let uiSchemaForm = {
+  "ui:order": ["*", "file"]
 };
 
 let protoschema = {};
@@ -20,6 +20,7 @@ let metaschema = {};
 let schema = {};
 
 const onSubmitMeta = ({ formData }) => {
+  // Generate schema from selected metadata
   const selectedMetadata = Object.keys(protoschema.properties).reduce(
     (props, key) => {
       return formData.choose.includes(protoschema.properties[key].title)
@@ -46,9 +47,34 @@ const onSubmitMeta = ({ formData }) => {
     type: "object"
   };
 
-  console.log(schema);
+  // Set "array" type options to display as checkboxes
+  const uiSchemaAdditions = Object.keys(selectedMetadata).reduce(
+    (props, key) => {
+      return selectedMetadata[key].type === "array"
+        ? {
+            ...props,
+            [key]: {
+              "ui:widget": "checkboxes"
+            }
+          }
+        : props;
+    },
+    {}
+  );
+
+  uiSchemaForm = {
+    ...uiSchemaForm,
+    ...uiSchemaAdditions
+  };
+
   ReactDOM.render(<FormUploader />, rootElement);
 };
+
+const FormBuilder = () => (
+  <div className="app" id="createSchema">
+    <Form schema={metaschema} onSubmit={onSubmitMeta} uiSchema={uiSchemaMeta} />
+  </div>
+);
 
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
@@ -65,26 +91,13 @@ const onSubmit = ({ formData }) => {
     .catch(console.error);
 };
 
-function FormBuilder() {
-  return (
-    <div className="app" id="createSchema">
-      <Form
-        schema={metaschema}
-        onSubmit={onSubmitMeta}
-        uiSchema={uiSchemaMeta}
-      />
-    </div>
-  );
-}
+const FormUploader = () => (
+  <div className="app" id="fillForm">
+    <Form schema={schema} onSubmit={onSubmit} uiSchema={uiSchemaForm} />
+  </div>
+);
 
-function FormUploader() {
-  return (
-    <div className="app" id="fillForm">
-      <Form schema={schema} onSubmit={onSubmit} uiSchema={uiSchemaForm} />
-    </div>
-  );
-}
-
+// Fetch the metadata template
 fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   method: "POST",
   body: JSON.stringify({}),
@@ -96,9 +109,7 @@ fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   .then(responseBody => {
     protoschema = JSON.parse(responseBody);
 
-    console.log(protoschema);
-
-    // Create the metaschema
+    // Create the schema for metadata selector
     metaschema = {
       title: "Select fields from the template",
       description: "",
@@ -114,8 +125,6 @@ fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
         }
       }
     };
-
-    console.log(metaschema);
 
     ReactDOM.render(<FormBuilder />, rootElement);
   })
