@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Form from "react-jsonschema-form";
+import Form from "react-jsonschema-form"; // original
 import "./styles.css";
 
 var uiSchema = {
