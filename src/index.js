@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Form from "./formGenerationEngine";
+import Form from "react-jsonschema-form";
 import "./styles.css";
 
 var uiSchema = {
@@ -13,9 +13,53 @@ const uiMetaschema = {
   }
 };
 
+const uiTemplateschema = {};
+
 var schema = {};
 var protoschema = {};
 var metaschema = {};
+var templateschema = {};
+
+const onTemplateSubmit = ({ formData }) => {
+  fetch(
+    "https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms",
+    {
+      method: "POST",
+      body: JSON.stringify({}),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }
+  )
+    .then(res => {
+      return res.text();
+    })
+    .then(myBody => {
+      console.log(myBody);
+      protoschema = JSON.parse(myBody);
+
+      // create the metaschema
+      metaschema.title = "Select fields from the template";
+      metaschema.description = "";
+      metaschema.type = "object";
+      metaschema.properties = {};
+      metaschema.properties.choose = {};
+      metaschema.properties.choose.type = "array";
+      metaschema.properties.choose.items = {};
+      metaschema.properties.choose.items.type = "string";
+      metaschema.properties.choose.items.enum = [];
+      for (var i in protoschema.properties) {
+        metaschema.properties.choose.items.enum.push(
+          protoschema.properties[i].title
+        );
+      }
+      metaschema.properties.choose.uniqueItems = true;
+      console.log(JSON.stringify(metaschema));
+
+      ReactDOM.render(<App1 />, rootElement);
+    })
+    .catch(console.error);
+};
 
 const onMetaSubmit = ({ formData }) => {
   console.log(formData);
@@ -30,7 +74,7 @@ const onMetaSubmit = ({ formData }) => {
       schema.properties[key.toString()] =
         protoschema.properties[key.toString()];
       if (schema.properties[key.toString()].type === "array")
-        uiSchema[key.toString()] = JSON.parse('{"ui:widget": "select"}');
+        uiSchema[key.toString()] = JSON.parse('{"ui:widget": "checkboxes"}');
     }
   });
   schema.properties.file = {
@@ -44,7 +88,7 @@ const onMetaSubmit = ({ formData }) => {
     "https://jmr2oacl0g.execute-api.us-west-1.amazonaws.com/default/forms-upload-schema",
     {
       method: "POST",
-      body: JSON.stringify(metaschema)
+      body: JSON.stringify(schema)
     }
   )
     .then(res => {
@@ -75,9 +119,21 @@ const onSubmit = ({ formData }) => {
     .catch(console.error);
 };
 
+function App0() {
+  return (
+    <div className="BoxForm" id="pickTemplate">
+      <Form
+        schema={templateschema}
+        onSubmit={onTemplateSubmit}
+        uiSchema={uiTemplateschema}
+      />
+    </div>
+  );
+}
+
 function App1() {
   return (
-    <div className="app" id="createSchema">
+    <div className="BoxForm" id="createSchema">
       <Form
         schema={metaschema}
         onSubmit={onMetaSubmit}
@@ -89,7 +145,7 @@ function App1() {
 
 function App2() {
   return (
-    <div className="app" id="fillForm">
+    <div className="BoxForm" id="fillForm">
       <Form schema={schema} onSubmit={onSubmit} uiSchema={uiSchema} />
     </div>
   );
@@ -98,7 +154,7 @@ function App2() {
 const rootElement = document.getElementById("root");
 fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   method: "POST",
-  body: JSON.stringify({}),
+  body: JSON.stringify({ command: "templatesList" }),
   headers: {
     "Content-Type": "application/json"
   }
@@ -108,26 +164,9 @@ fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   })
   .then(myBody => {
     console.log(myBody);
-    protoschema = JSON.parse(myBody);
+    templateschema = JSON.parse(myBody);
+    console.log(JSON.stringify(templateschema));
 
-    // create the metaschema
-    metaschema.title = "Select fields from the template";
-    metaschema.description = "";
-    metaschema.type = "object";
-    metaschema.properties = {};
-    metaschema.properties.choose = {};
-    metaschema.properties.choose.type = "array";
-    metaschema.properties.choose.items = {};
-    metaschema.properties.choose.items.type = "string";
-    metaschema.properties.choose.items.enum = [];
-    for (var i in protoschema.properties) {
-      metaschema.properties.choose.items.enum.push(
-        protoschema.properties[i].title
-      );
-    }
-    metaschema.properties.choose.uniqueItems = true;
-    console.log(JSON.stringify(metaschema));
-
-    ReactDOM.render(<App1 />, rootElement);
+    ReactDOM.render(<App0 />, rootElement);
   })
   .catch(console.error);
