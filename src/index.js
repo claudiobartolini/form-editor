@@ -20,12 +20,15 @@ var protoschema = {};
 var metaschema = {};
 var templateschema = {};
 var templateEntries = {};
+var templateKey;
 
 const onTemplateSubmit = ({ formData }) => {
   const selectedEntry = templateEntries.entries.find(template => {
     return template.displayName === formData.choose;
   });
   console.log(formData);
+
+  templateKey = selectedEntry.templateKey;
 
   fetch(
     "https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms",
@@ -91,6 +94,7 @@ const onMetaSubmit = ({ formData }) => {
     format: "data-url",
     title: "Please upload the request file"
   };
+  schema.templateKey = templateKey;
   console.log(JSON.stringify(schema));
   ReactDOM.render(<App2 />, rootElement);
   fetch(
@@ -111,6 +115,10 @@ const onMetaSubmit = ({ formData }) => {
 
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
+  //  when we split in editor + filler app, schema will be
+  // available from reading .boxform from file, and it will
+  // include the proper templateKey. So it's not cheating
+  formData.templateKey = schema.templateKey;
   console.log(formData);
   fetch(
     "https://fvtwd1iix2.execute-api.us-west-1.amazonaws.com/default/box-forms",
