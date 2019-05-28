@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Form from "./formGenerationEngine";
+import Form from "react-jsonschema-form"; // original
 import "./styles.css";
 
 var uiSchema = {
@@ -13,8 +13,61 @@ const uiSchemaMeta = {
   }
 };
 
-let uiSchemaForm = {
-  "ui:order": ["*", "file"]
+const uiTemplateschema = {};
+
+var schema = {};
+var protoschema = {};
+var metaschema = {};
+var templateschema = {};
+var templateEntries = {};
+
+const onTemplateSubmit = ({ formData }) => {
+  const selectedEntry = templateEntries.entries.find(template => {
+    return template.displayName === formData.choose;
+  });
+  console.log(formData);
+
+  fetch(
+    "https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        command: "fetchTemplate",
+        pick: selectedEntry.templateKey
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }
+  )
+    .then(res => {
+      return res.text();
+    })
+    .then(myBody => {
+      console.log(myBody);
+      protoschema = JSON.parse(myBody);
+
+      // create the metaschema
+      metaschema.title = "Select fields from the template";
+      metaschema.description = "";
+      metaschema.type = "object";
+      metaschema.properties = {};
+      metaschema.properties.choose = {};
+      metaschema.properties.choose.type = "array";
+      metaschema.properties.choose.items = {};
+      metaschema.properties.choose.items.type = "string";
+      metaschema.properties.choose.items.enum = [];
+      for (var i in protoschema.properties) {
+        metaschema.properties.choose.items.enum.push(
+          protoschema.properties[i].title
+        );
+      }
+      metaschema.properties.choose.uniqueItems = true;
+      console.log(JSON.stringify(metaschema));
+
+      ReactDOM.render(<App1 />, rootElement);
+    })
+    .catch(console.error);
 };
 
 const onMetaSubmit = ({ formData }) => {
@@ -30,7 +83,7 @@ const onMetaSubmit = ({ formData }) => {
       schema.properties[key.toString()] =
         protoschema.properties[key.toString()];
       if (schema.properties[key.toString()].type === "array")
-        uiSchema[key.toString()] = JSON.parse('{"ui:widget": "select"}');
+        uiSchema[key.toString()] = JSON.parse('{"ui:widget": "checkboxes"}');
     }
   });
   schema.properties.file = {
@@ -44,7 +97,7 @@ const onMetaSubmit = ({ formData }) => {
     "https://jmr2oacl0g.execute-api.us-west-1.amazonaws.com/default/forms-upload-schema",
     {
       method: "POST",
-      body: JSON.stringify(metaschema)
+      body: JSON.stringify(schema)
     }
   )
     .then(res => {
@@ -77,41 +130,70 @@ const onSubmit = ({ formData }) => {
     .catch(console.error);
 };
 
-const FormUploader = () => (
-  <div className="app" id="fillForm">
-    <Form schema={schema} onSubmit={onSubmit} uiSchema={uiSchemaForm} />
-  </div>
-);
+function App0() {
+  return (
+    <div className="BoxForm" id="pickTemplate">
+      <Form
+        schema={templateschema}
+        onSubmit={onTemplateSubmit}
+        uiSchema={uiTemplateschema}
+      />
+    </div>
+  );
+}
 
-// Fetch the metadata template
+function App1() {
+  return (
+    <div className="BoxForm" id="createSchema">
+      <Form
+        schema={metaschema}
+        onSubmit={onMetaSubmit}
+        uiSchema={uiMetaschema}
+      />
+    </div>
+  );
+}
+
+function App2() {
+  return (
+    <div className="BoxForm" id="fillForm">
+      <Form schema={schema} onSubmit={onSubmit} uiSchema={uiSchema} />
+    </div>
+  );
+}
+
+const rootElement = document.getElementById("root");
+
 fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   method: "POST",
-  body: JSON.stringify({}),
+  body: JSON.stringify({ command: "templatesList" }),
   headers: {
     "Content-Type": "application/json"
   }
 })
-  .then(res => res.text())
-  .then(responseBody => {
-    protoschema = JSON.parse(responseBody);
+  .then(res => {
+    return res.text();
+  })
+  .then(myBody => {
+    console.log(myBody);
+    templateEntries = JSON.parse(myBody);
+    console.log(JSON.stringify(templateschema));
 
-    // Create the schema for metadata selector
-    metaschema = {
-      title: "Select fields from the template",
-      description: "",
-      type: "object",
-      properties: {
-        choose: {
-          type: "array",
-          items: {
-            type: "string",
-            enum: Object.values(protoschema.properties).map(prop => prop.title)
-          },
-          uniqueItems: true
-        }
-      }
-    };
+    // create the metaschema
+    templateschema.title = "Select the template from the list";
+    templateschema.description = "";
+    templateschema.type = "object";
+    templateschema.properties = {};
+    templateschema.properties.choose = {};
+    templateschema.properties.choose.type = "string";
+    templateschema.properties.choose.enum = [];
+    for (var i in templateEntries.entries) {
+      templateschema.properties.choose.enum.push(
+        templateEntries.entries[i].displayName
+      );
+    }
+    console.log(JSON.stringify(templateschema));
 
-    ReactDOM.render(<FormBuilder />, rootElement);
+    ReactDOM.render(<App0 />, rootElement);
   })
   .catch(console.error);
