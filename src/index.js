@@ -109,12 +109,6 @@ const onMetaSubmit = ({ formData }) => {
     .catch(console.error);
 };
 
-const FormBuilder = () => (
-  <div className="app" id="createSchema">
-    <Form schema={metaschema} onSubmit={onSubmitMeta} uiSchema={uiSchemaMeta} />
-  </div>
-);
-
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
   console.log(formData);
