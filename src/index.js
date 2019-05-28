@@ -7,7 +7,7 @@ var uiSchema = {
   "ui:order": ["*", "file"]
 };
 
-const uiSchemaMeta = {
+const uiMetaschema = {
   choose: {
     "ui:widget": "checkboxes"
   }
