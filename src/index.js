@@ -7,7 +7,7 @@ var uiSchema = {
   "ui:order": ["*", "file"]
 };
 
-const uiMetaschema = {
+const uiSchemaMeta = {
   choose: {
     "ui:widget": "checkboxes"
   }
@@ -100,6 +100,12 @@ const onMetaSubmit = ({ formData }) => {
     .catch(console.error);
 };
 
+const FormBuilder = () => (
+  <div className="app" id="createSchema">
+    <Form schema={metaschema} onSubmit={onSubmitMeta} uiSchema={uiSchemaMeta} />
+  </div>
+);
+
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
   console.log(formData);
@@ -110,12 +116,8 @@ const onSubmit = ({ formData }) => {
       body: JSON.stringify(formData)
     }
   )
-    .then(res => {
-      return res.text();
-    })
-    .then(myBody => {
-      console.log(myBody);
-    })
+    .then(res => res.text())
+    .then(responseBody => console.log(responseBody))
     .catch(console.error);
 };
 
@@ -152,6 +154,7 @@ function App2() {
 }
 
 const rootElement = document.getElementById("root");
+
 fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   method: "POST",
   body: JSON.stringify({ command: "templatesList" }),
