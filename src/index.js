@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import Form from "./formGenerationEngine";
 import "./styles.css";
 
-const uiSchema = {
+var uiSchema = {
   "ui:order": ["*", "file"]
 };
 
@@ -29,6 +29,8 @@ const onMetaSubmit = ({ formData }) => {
     ) {
       schema.properties[key.toString()] =
         protoschema.properties[key.toString()];
+      if (schema.properties[key.toString()].type === "array")
+        uiSchema[key.toString()] = JSON.parse('{"ui:widget": "select"}');
     }
   });
   schema.properties.file = {
@@ -38,6 +40,20 @@ const onMetaSubmit = ({ formData }) => {
   };
   console.log(JSON.stringify(schema));
   ReactDOM.render(<App2 />, rootElement);
+  fetch(
+    "https://jmr2oacl0g.execute-api.us-west-1.amazonaws.com/default/forms-upload-schema",
+    {
+      method: "POST",
+      body: JSON.stringify(metaschema)
+    }
+  )
+    .then(res => {
+      return res.text();
+    })
+    .then(myBody => {
+      console.log(myBody);
+    })
+    .catch(console.error);
 };
 
 const onSubmit = ({ formData }) => {
