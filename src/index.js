@@ -3,41 +3,51 @@ import ReactDOM from "react-dom";
 import Form from "./formGenerationEngine";
 import "./styles.css";
 
-const uiSchema = {
+const rootElement = document.getElementById("root");
+
+const uiSchemaForm = {
   "ui:order": ["*", "file"]
 };
 
-const uiMetaschema = {
+const uiSchemaMeta = {
   choose: {
     "ui:widget": "checkboxes"
   }
 };
 
-var schema = {};
-var protoschema = {};
-var metaschema = {};
+let protoschema = {};
+let metaschema = {};
+let schema = {};
 
-const onMetaSubmit = ({ formData }) => {
-  console.log(formData);
-  schema.properties = {};
-  schema.title = protoschema.title;
-  schema.description = protoschema.description;
-  schema.type = "object";
-  Object.keys(protoschema.properties).forEach(function(key) {
-    if (
-      formData.choose.indexOf(protoschema.properties[key.toString()].title) > -1
-    ) {
-      schema.properties[key.toString()] =
-        protoschema.properties[key.toString()];
-    }
-  });
-  schema.properties.file = {
-    type: "string",
-    format: "data-url",
-    title: "Please upload the request file"
+const onSubmitMeta = ({ formData }) => {
+  const selectedMetadata = Object.keys(protoschema.properties).reduce(
+    (props, key) => {
+      return formData.choose.includes(protoschema.properties[key].title)
+        ? {
+            ...props,
+            [key]: protoschema.properties[key]
+          }
+        : props;
+    },
+    {}
+  );
+
+  schema = {
+    description: protoschema.description,
+    properties: {
+      ...selectedMetadata,
+      file: {
+        type: "string",
+        format: "data-url",
+        title: "Please upload the request file"
+      }
+    },
+    title: protoschema.title,
+    type: "object"
   };
-  console.log(JSON.stringify(schema));
-  ReactDOM.render(<App2 />, rootElement);
+
+  console.log(schema);
+  ReactDOM.render(<FormUploader />, rootElement);
 };
 
 const onSubmit = ({ formData }) => {
@@ -50,36 +60,31 @@ const onSubmit = ({ formData }) => {
       body: JSON.stringify(formData)
     }
   )
-    .then(res => {
-      return res.text();
-    })
-    .then(myBody => {
-      console.log(myBody);
-    })
+    .then(res => res.text())
+    .then(responseBody => console.log(responseBody))
     .catch(console.error);
 };
 
-function App1() {
+function FormBuilder() {
   return (
     <div className="app" id="createSchema">
       <Form
         schema={metaschema}
-        onSubmit={onMetaSubmit}
-        uiSchema={uiMetaschema}
+        onSubmit={onSubmitMeta}
+        uiSchema={uiSchemaMeta}
       />
     </div>
   );
 }
 
-function App2() {
+function FormUploader() {
   return (
     <div className="app" id="fillForm">
-      <Form schema={schema} onSubmit={onSubmit} uiSchema={uiSchema} />
+      <Form schema={schema} onSubmit={onSubmit} uiSchema={uiSchemaForm} />
     </div>
   );
 }
 
-const rootElement = document.getElementById("root");
 fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   method: "POST",
   body: JSON.stringify({}),
@@ -87,31 +92,31 @@ fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
     "Content-Type": "application/json"
   }
 })
-  .then(res => {
-    return res.text();
-  })
-  .then(myBody => {
-    console.log(myBody);
-    protoschema = JSON.parse(myBody);
+  .then(res => res.text())
+  .then(responseBody => {
+    protoschema = JSON.parse(responseBody);
 
-    // create the metaschema
-    metaschema.title = "Select fields from the template";
-    metaschema.description = "";
-    metaschema.type = "object";
-    metaschema.properties = {};
-    metaschema.properties.choose = {};
-    metaschema.properties.choose.type = "array";
-    metaschema.properties.choose.items = {};
-    metaschema.properties.choose.items.type = "string";
-    metaschema.properties.choose.items.enum = [];
-    for (var i in protoschema.properties) {
-      metaschema.properties.choose.items.enum.push(
-        protoschema.properties[i].title
-      );
-    }
-    metaschema.properties.choose.uniqueItems = true;
-    console.log(JSON.stringify(metaschema));
+    console.log(protoschema);
 
-    ReactDOM.render(<App1 />, rootElement);
+    // Create the metaschema
+    metaschema = {
+      title: "Select fields from the template",
+      description: "",
+      type: "object",
+      properties: {
+        choose: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: Object.values(protoschema.properties).map(prop => prop.title)
+          },
+          uniqueItems: true
+        }
+      }
+    };
+
+    console.log(metaschema);
+
+    ReactDOM.render(<FormBuilder />, rootElement);
   })
   .catch(console.error);
