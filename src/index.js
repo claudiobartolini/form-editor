@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Form from "react-jsonschema-form";
+import Form from "react-jsonschema-form"; // original
 import "./styles.css";
 
 var uiSchema = {
@@ -19,13 +19,24 @@ var schema = {};
 var protoschema = {};
 var metaschema = {};
 var templateschema = {};
+var templateEntries = {};
+var templateKey;
 
 const onTemplateSubmit = ({ formData }) => {
+  const selectedEntry = templateEntries.entries.find(template => {
+    return template.displayName === formData.choose;
+  });
+  console.log(formData);
+
+  templateKey = selectedEntry.templateKey;
   fetch(
     "https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms",
     {
       method: "POST",
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        command: "fetchTemplate",
+        pick: selectedEntry.templateKey
+      }),
       headers: {
         "Content-Type": "application/json"
       }
@@ -82,6 +93,7 @@ const onMetaSubmit = ({ formData }) => {
     format: "data-url",
     title: "Please upload the request file"
   };
+  schema.templateKey = templateKey;
   console.log(JSON.stringify(schema));
   ReactDOM.render(<App2 />, rootElement);
   fetch(
@@ -102,6 +114,10 @@ const onMetaSubmit = ({ formData }) => {
 
 const onSubmit = ({ formData }) => {
   alert("Data submitted: ", formData);
+  //  when we split in editor + filler app, schema will be
+  // available from reading .boxform from file, and it will
+  // include the proper templateKey. So it's not cheating
+  formData.templateKey = schema.templateKey;
   console.log(formData);
   fetch(
     "https://fvtwd1iix2.execute-api.us-west-1.amazonaws.com/default/box-forms",
@@ -164,7 +180,22 @@ fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   })
   .then(myBody => {
     console.log(myBody);
-    templateschema = JSON.parse(myBody);
+    templateEntries = JSON.parse(myBody);
+    console.log(JSON.stringify(templateschema));
+
+    // create the metaschema
+    templateschema.title = "Select the template from the list";
+    templateschema.description = "";
+    templateschema.type = "object";
+    templateschema.properties = {};
+    templateschema.properties.choose = {};
+    templateschema.properties.choose.type = "string";
+    templateschema.properties.choose.enum = [];
+    for (var i in templateEntries.entries) {
+      templateschema.properties.choose.enum.push(
+        templateEntries.entries[i].displayName
+      );
+    }
     console.log(JSON.stringify(templateschema));
 
     ReactDOM.render(<App0 />, rootElement);
