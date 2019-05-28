@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Form from "react-jsonschema-form";
+import Form from "react-jsonschema-form"; // original
 import "./styles.css";
 
 var uiSchema = {
@@ -19,13 +19,22 @@ var schema = {};
 var protoschema = {};
 var metaschema = {};
 var templateschema = {};
+var templateEntries = {};
 
 const onTemplateSubmit = ({ formData }) => {
+  const selectedEntry = templateEntries.entries.find(template => {
+    return template.displayName === formData.choose;
+  });
+  console.log(formData);
+
   fetch(
     "https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms",
     {
       method: "POST",
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        command: "fetchTemplate",
+        pick: selectedEntry.templateKey
+      }),
       headers: {
         "Content-Type": "application/json"
       }
@@ -164,7 +173,22 @@ fetch("https://o9ab3pyst2.execute-api.us-west-1.amazonaws.com/default/forms", {
   })
   .then(myBody => {
     console.log(myBody);
-    templateschema = JSON.parse(myBody);
+    templateEntries = JSON.parse(myBody);
+    console.log(JSON.stringify(templateschema));
+
+    // create the metaschema
+    templateschema.title = "Select the template from the list";
+    templateschema.description = "";
+    templateschema.type = "object";
+    templateschema.properties = {};
+    templateschema.properties.choose = {};
+    templateschema.properties.choose.type = "string";
+    templateschema.properties.choose.enum = [];
+    for (var i in templateEntries.entries) {
+      templateschema.properties.choose.enum.push(
+        templateEntries.entries[i].displayName
+      );
+    }
     console.log(JSON.stringify(templateschema));
 
     ReactDOM.render(<App0 />, rootElement);
